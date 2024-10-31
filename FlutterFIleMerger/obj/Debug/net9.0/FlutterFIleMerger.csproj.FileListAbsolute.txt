@@ -1,0 +1,14 @@
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\bin\Debug\net9.0\FlutterFIleMerger.exe
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\bin\Debug\net9.0\FlutterFIleMerger.deps.json
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\bin\Debug\net9.0\FlutterFIleMerger.runtimeconfig.json
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\bin\Debug\net9.0\FlutterFIleMerger.dll
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\bin\Debug\net9.0\FlutterFIleMerger.pdb
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.GeneratedMSBuildEditorConfig.editorconfig
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.AssemblyInfoInputs.cache
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.AssemblyInfo.cs
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.csproj.CoreCompileInputs.cache
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.dll
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\refint\FlutterFIleMerger.dll
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.pdb
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.genruntimeconfig.cache
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\ref\FlutterFIleMerger.dll
