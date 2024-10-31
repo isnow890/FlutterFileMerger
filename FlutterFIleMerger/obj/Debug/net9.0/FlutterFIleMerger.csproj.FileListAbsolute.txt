@@ -12,3 +12,4 @@ D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\refint\F
 D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.pdb
 D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.genruntimeconfig.cache
 D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\ref\FlutterFIleMerger.dll
+D:\repo\by_project\FlutterFileMerger\flutterfilemerger\obj\Debug\net9.0\FlutterFIleMerger.sourcelink.json

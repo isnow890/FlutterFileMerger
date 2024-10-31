@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 class Program
 {
@@ -7,56 +8,66 @@ class Program
     {
         try
         {
-            // 현재 실행 파일의 위치에서 상위 디렉토리 경로 가져오기
             string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string projectPath = Directory.GetParent(currentPath).FullName;
+            string rootPath = Directory.GetParent(currentPath).FullName;
+            string libPath = Path.Combine(rootPath, "lib");
+
+            if (!Directory.Exists(libPath))
+            {
+                throw new DirectoryNotFoundException("lib 폴더를 찾을 수 없습니다. FileMerger 폴더가 Flutter 프로젝트 루트에 있는지 확인해주세요.");
+            }
+
             string outputPath = Path.Combine(currentPath,
-                $"merged_source{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.txt");
+                $"merged_dart_source_{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.txt");
 
-            Console.WriteLine($"탐색 시작 경로: {projectPath}");
+            string[] excludePatterns = new[]
+            {
+                ".g.dart",
+                ".freezed.dart",
+                ".config.dart",
+                ".gr.dart",
+                ".generated.dart",
+                ".mocks.dart"
+            };
 
-            // Migrations 폴더를 제외한 모든 .cs 파일 찾기
-            var files2 = Directory.GetFiles(projectPath, "*.cs", SearchOption.AllDirectories)
-                .Where(f => !f.Contains("\\Migrations\\") && !f.Contains("/Migrations/"))
-                ;
-            var files = files2
-                .Where(f => !f.Contains("\\bin\\") && !f.Contains("/bin/"))
+            var files = Directory.GetFiles(libPath, "*.dart", SearchOption.AllDirectories)
+                .Where(f => !excludePatterns.Any(pattern => f.EndsWith(pattern)))
                 .ToArray();
             
             StringBuilder mergedContent = new StringBuilder();
-
-            // 프로젝트 시작 정보 추가
             mergedContent.AppendLine("=============================================");
-            mergedContent.AppendLine($"프로젝트 경로: {projectPath}");
             mergedContent.AppendLine($"파일 병합 시간: {DateTime.Now}");
-            mergedContent.AppendLine($"총 파일 수: {files.Length}");
+            mergedContent.AppendLine($"총 Dart 파일 수: {files.Length}");
             mergedContent.AppendLine("=============================================\n");
 
-            // 파일 구조 트리 생성
-            mergedContent.AppendLine("폴더 구조:");
-            AddDirectoryStructure(projectPath, mergedContent, "");
+            mergedContent.AppendLine("lib 디렉토리 구조:");
+            AddDirectoryStructure(libPath, mergedContent, "", excludePatterns);
             mergedContent.AppendLine("\n=============================================\n");
 
-            // 각 파일의 내용을 합치기
             foreach (string file in files.OrderBy(f => f))
             {
-                string relativePath = Path.GetRelativePath(projectPath, file);
-
+                string relativePath = Path.GetRelativePath(libPath, file);
                 mergedContent.AppendLine("=============================================");
-                mergedContent.AppendLine($"// 파일 경로: {relativePath}");
-                mergedContent.AppendLine($"// 전체 경로: {file}");
-                mergedContent.AppendLine($"// 파일 크기: {new FileInfo(file).Length:N0} bytes");
-                mergedContent.AppendLine($"// 마지막 수정: {File.GetLastWriteTime(file)}");
+                mergedContent.AppendLine($"// {relativePath}");
                 mergedContent.AppendLine("=============================================");
                 mergedContent.AppendLine();
-                mergedContent.AppendLine(File.ReadAllText(file));
+                
+                // 파일 내용 읽기 및 주석 제거
+                string content = File.ReadAllText(file);
+                string noComments = RemoveComments(content);
+                // 빈 줄이 3개 이상 연속되는 경우 2개로 줄이기
+                noComments = Regex.Replace(noComments, @"\n{3,}", "\n\n");
+                // 앞뒤 공백 제거
+                noComments = noComments.Trim();
+                
+                mergedContent.AppendLine(noComments);
                 mergedContent.AppendLine();
                 mergedContent.AppendLine();
             }
 
             File.WriteAllText(outputPath, mergedContent.ToString());
 
-            Console.WriteLine($"총 {files.Length}개의 파일이 성공적으로 병합되었습니다.");
+            Console.WriteLine($"총 {files.Length}개의 Dart 파일이 성공적으로 병합되었습니다.");
             Console.WriteLine($"결과 파일: {outputPath}");
             Console.WriteLine("아무 키나 누르면 종료됩니다...");
             Console.ReadKey();
@@ -64,28 +75,47 @@ class Program
         catch (Exception ex)
         {
             Console.WriteLine($"에러 발생: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
             Console.WriteLine("아무 키나 누르면 종료됩니다...");
             Console.ReadKey();
         }
     }
 
-    static void AddDirectoryStructure(string path, StringBuilder sb, string indent)
+    static string RemoveComments(string code)
     {
-        // 현재 디렉토리 이름 출력
+        // 여러 줄 주석 제거 (/* ... */)
+        code = Regex.Replace(code, @"/\*[\s\S]*?\*/", "", RegexOptions.Multiline);
+        
+        // 문서화 주석 제거 (/// ...)
+        code = Regex.Replace(code, @"///.*$", "", RegexOptions.Multiline);
+        
+        // 한 줄 주석 제거 (// ...)
+        code = Regex.Replace(code, @"//.*$", "", RegexOptions.Multiline);
+        
+        return code;
+    }
+
+    static void AddDirectoryStructure(string path, StringBuilder sb, string indent, string[] excludePatterns)
+    {
         string dirName = Path.GetFileName(path);
         if (string.IsNullOrEmpty(dirName)) dirName = path;
-        sb.AppendLine($"{indent}📂 {dirName}");
-
-        // 하위 디렉토리 처리
-        foreach (var dir in Directory.GetDirectories(path).OrderBy(d => d))
+        
+        if (dirName != "lib")
         {
-            AddDirectoryStructure(dir, sb, indent + "  ");
+            sb.AppendLine($"{indent}📂 {dirName}");
+            indent += "  ";
         }
 
-        // 현재 디렉토리의 .cs 파일들 출력
-        foreach (var file in Directory.GetFiles(path, "*.cs").OrderBy(f => f))
+        foreach (var dir in Directory.GetDirectories(path).OrderBy(d => d))
         {
-            sb.AppendLine($"{indent}  📄 {Path.GetFileName(file)}");
+            AddDirectoryStructure(dir, sb, indent, excludePatterns);
+        }
+
+        foreach (var file in Directory.GetFiles(path, "*.dart")
+            .Where(f => !excludePatterns.Any(pattern => f.EndsWith(pattern)))
+            .OrderBy(f => f))
+        {
+            sb.AppendLine($"{indent}📄 {Path.GetFileName(file)}");
         }
     }
 }
